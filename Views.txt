@@ -1,0 +1,96 @@
+/*-------------------------------------------------------------------*/
+/*Number of Doctors per Hospital*/
+
+CREATE VIEW DoctorsPerHospital AS 
+select h.hospitalID	 as "hospital Id" , h.Name as "Hospital Name", count(*) as "Total Number" from SFH_Hospital h, SFH_doctor s 
+where s.doctorType ='M' and s.hospitalID	 = h.hospitalID	
+group by h.hospitalID	, h.Name
+order by h.hospitalID;
+
+
+
+/*-------------------------------------------------------------------*/
+/*Total Patient Treated in one month*/
+
+CREATE VIEW TotalPatientTreatedMonthly AS
+SELECT SFH_doctor.ohipID, SFH_doctor.name as "Doctor", SFH_Patient.ohipID as "ohip Number", SFH_Patient.name as "Patient", sfh_admission.enddate
+FROM SFH_Patient,SFH_doctor, SFH_files, SFH_admission
+WHERE SFH_doctor.doctortype = 'M' 
+and SFH_doctor.doctorID = SFH_files.doctorID
+and SFH_admission.admissionID = SFH_files.admissionID
+and SFH_Patient.patientID = SFH_admission.patientID 
+and SFH_admission.enddate = (select max(enddate) from SFH_admission)
+order by SFH_doctor.doctorID desc;
+
+
+
+/*-------------------------------------------------------------------*/
+/*Number of Duty Performed by each employee in One Month*/
+
+CREATE VIEW DutyPerMonth AS
+select name, DATES from SFH_DOCTOR d,SFH_DUTYDOCTOR dd, SFH_DUTY du
+where d.Doctortype = 'M' 
+and d.doctorID = dd.doctorID	 
+and dd.dutyID = du.dutyID
+order by name; 
+
+
+
+/*-------------------------------------------------------------------*/
+/*History for patients*/
+
+CREATE VIEW PatientHistory AS 
+select f.filesID, p.ohipID, p.name, a.roomID as "Room", a.startDate as "Admission Date", a.endDate as "End Date", f.doctorID as "Doctor Id", d.name as "Doctor Name", di.name as "Disease", r.comments as "Remark", r.dates as "Result Date"
+from SFH_Patient p, SFH_admission a, SFH_files f, SFH_result r,  SFH_doctor d, SFH_Disease di
+where p.patientID = a.patientID and
+a.admissionID = f.admissionID and
+r.filesID = f.filesID and 
+f.doctorID = d.doctorID and
+f.diseaseID = di.diseaseID
+order by p.name;
+
+
+
+/*-------------------------------------------------------------------*/
+/*Number of beds Available per each room.*/
+
+CREATE VIEW AvailableAccommodation AS 
+select hospitalID, roomID, roomNumber, bedNum from SFH_ROOM  
+where roomID not in(select roomID from SFH_admission)
+union
+select hospitalID, SFH_ROOM .roomID, SFH_ROOM .roomNumber, SFH_ROOM .bedNum - count(*) from SFH_admission, SFH_ROOM
+where SFH_ROOM .roomID = SFH_admission.roomID 
+group by hospitalID, SFH_ROOM .roomID, SFH_ROOM .roomNumber, SFH_ROOM .bedNum; 
+
+
+
+/*-------------------------------------------------------------------*/
+/*Number of beds Available per each room.*/
+
+CREATE VIEW PatientPerDoctor AS
+SELECT SFH_doctor.ohipID, SFH_doctor.name as "Doctor", SFH_Patient.ohipID as "ohip Number", SFH_Patient.name as "Patient", sfh_admission.startdate
+FROM SFH_Patient,SFH_doctor, SFH_files, SFH_admission
+WHERE SFH_doctor.doctortype = 'M' 
+and SFH_doctor.doctorID = SFH_files.doctorID
+and SFH_admission.admissionID = SFH_files.admissionID
+and SFH_Patient.patientID = SFH_admission.patientID 
+and SFH_admission.startdate = (select max(startdate) from SFH_admission)
+order by SFH_doctor.doctorID desc;
+
+
+
+/*-------------------------------------------------------------------*/
+/*Patient Treatment history per doctor in one month*/
+
+CREATE VIEW PatientPerDoctor AS
+SELECT SFH_doctor.ohipID, SFH_doctor.name as "Doctor", SFH_Patient.ohipID as "ohip Number", SFH_Patient.name as "Patient", sfh_admission.startdate
+FROM SFH_Patient,SFH_doctor, SFH_files, SFH_admission
+WHERE SFH_doctor.doctortype = 'M' 
+and SFH_doctor.doctorID = SFH_files.doctorID
+and SFH_admission.admissionID = SFH_files.admissionID
+and SFH_Patient.patientID = SFH_admission.patientID 
+and SFH_admission.startdate = (select max(startdate) from SFH_admission)
+order by SFH_doctor.doctorID desc;
+
+
+

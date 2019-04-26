@@ -1,0 +1,44 @@
+/*-------------------------------------------------------------------*/
+/*Start date must be earlier than end date*/
+
+CREATE OR REPLACE TRIGGER tr_endDate
+BEFORE INSERT OR UPDATE ON SFH_admission
+FOR EACH ROW
+DECLARE
+	v_startDate NUMBER(10);
+	error EXCEPTION;
+BEGIN
+	if(:new.enddate<:new.startDate) then
+		raise error;
+	end if;
+		
+EXCEPTION 
+	when error then
+		RAISE_APPLICATION_ERROR(-20001,'
+The end date can not be less than the date of registration');
+END tr_endDate;
+
+
+
+
+
+/*-------------------------------------------------------------------*/
+/*Result must be Assigned to File*/
+
+
+CREATE OR REPLACE TRIGGER tr_AssignResult
+BEFORE INSERT OR UPDATE ON SFH_result
+FOR EACH ROW
+DECLARE
+	v_cont NUMBER(1);
+	FileDoesnotExist EXCEPTION;
+BEGIN
+	select count(*) into v_cont from SFH_files where filesID = :new.filesID;
+	if(v_cont<1) then
+		raise FileDoesnotExist;
+	end if;			
+EXCEPTION 
+	when FileDoesnotExist then
+		RAISE_APPLICATION_ERROR(-20001,'There is no record to which the result is assigned.');
+END tr_AssignResult;
+

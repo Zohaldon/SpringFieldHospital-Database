@@ -1,0 +1,152 @@
+/*-------------------------------------------------------------------*/
+/*procedure to get the history of patient*/
+
+CREATE OR REPLACE 
+PROCEDURE historyOfPatient(p_ohipID VARCHAR)
+AS
+	v_filesID SFH_files. filesID%TYPE;
+	v_ohipID SFH_Patient.ohipID%TYPE;
+	v_name SFH_Patient.name%TYPE;
+	v_roomID SFH_admission.roomID%TYPE;
+	v_startDate SFH_admission.startDate%TYPE;
+	v_endDate SFH_admission.endDate%TYPE;
+	v_doctorID SFH_files.doctorID%TYPE;
+	v_docname SFH_doctor.name%TYPE;
+	v_diname SFH_Disease.name%TYPE;
+	v_comments SFH_result.comments%TYPE;
+	v_dates SFH_result.dates%TYPE;
+	
+	cursor history is select * from patienthistory h where h.ohipID = p_ohipID order by "Admission Date";
+begin
+	open history;
+	loop
+		fetch history into v_filesID, v_ohipID, v_name, v_roomID,v_startDate, v_endDate, v_doctorID, v_docname, v_diname,v_comments, v_dates;
+		exit when history%notfound;
+		dbms_output.put_line('filesID |   ohipID    |           name         |  Roomid  | Admission Date |  doctorID  |     Doctor Name    |               Disease          |     comments                               |   Result Date');
+		dbms_output.put_line(v_filesID ||'         ' || v_ohipID ||'         '|| v_name ||'           '|| v_roomID ||'         '|| v_startDate||'            ' || v_doctorID ||'         ' || v_docname ||'       '|| v_diname ||'                          '|| v_comments ||'                   '|| v_dates);
+	end loop;
+	close history;
+end historyOfPatient;
+
+
+/*FUNCTION query*/
+
+begin
+historyOfPatient('71295833A');
+end;
+
+
+
+
+
+
+/*-------------------------------------------------------------------*/
+/*procedure to discharge a patient or show error if already discharged*/
+
+CREATE OR REPLACE 
+PROCEDURE dischargePatient(p_ohipID VARCHAR)
+AS
+	v_cont NUMBER(2);
+	v_patientID SFH_Patient.patientID%TYPE;
+	v_endDate SFH_admission.endDate%TYPE;
+	v_discharged NUMBER(1);
+ 
+begin
+	select patientID into v_patientID from SFH_Patient where ohipID = p_ohipID;
+	select count(*) into v_discharged from SFH_admission a, SFH_Patient p where p.ohipID = p_ohipID and a.patientID = p.patientID and endDate is null;
+
+	if (v_discharged>0) then
+		update SFH_admission set endDate = CURRENT_DATE where patientID = v_patientID;
+                commit;
+                dbms_output.put_line('Discharged');
+	end if;
+end dischargePatient;
+
+/*FUNCTION query*/
+
+begin
+DISCHARGEPATIENT('71295837A');
+end;
+
+
+
+
+
+/*-------------------------------------------------------------------*/
+/*procedure that shows effect of treatment when id of disease is entered*/
+
+CREATE OR REPLACE 
+PROCEDURE diseaseAnalysis(p_diseaseID NUMBER)
+AS
+	v_cont NUMBER(2);
+	v_filesID SFH_files.filesID%TYPE;
+	v_comments VARCHAR2(300);
+	v_dates DATE;
+
+	cursor filesID is select filesID from SFH_files f where f.diseaseID = p_diseaseID;
+	cursor SFH_result (p_filesID in number) is
+       		select comments, dates from SFH_result where filesID = p_filesID;
+begin
+
+	open filesID;
+	loop
+		fetch filesID into v_filesID;
+		exit when filesID%notfound;
+
+			open SFH_result(v_filesID);
+			loop
+				fetch SFH_result into v_comments, v_dates;
+				exit when SFH_result%notfound;
+				dbms_output.put_line('diseaseID:'||p_diseaseID||' filesID:'||v_filesID||' comments:'||v_comments||' dates:'||v_dates);
+			end loop;
+			close SFH_result;
+	end loop;
+	close filesID;
+end diseaseAnalysis;
+
+/*Function Query*/
+
+begin
+DISEASEANALYSIS(1);
+end;
+
+
+
+
+
+/*-------------------------------------------------------------------*/
+/*procedure that shows effect of treatment when id of disease is entered*/
+
+CREATE OR REPLACE 
+PROCEDURE roomAndPatientWithIllness(p_diseaseID NUMBER)
+AS
+	v_cont NUMBER(2);
+	v_admissionID SFH_admission.admissionID%TYPE;
+
+	v_roomNumber SFH_ROOM.roomNumber%TYPE;
+	v_bedNum SFH_ROOM.bedNum%TYPE;
+	v_name SFH_Patient.name%TYPE;
+
+	cursor admissionID is select admissionID from SFH_files f where f.diseaseID = p_diseaseID;
+	cursor dataValue (p_admissionID in number) is
+       		select r.roomNumber, r.bedNum, p.name from SFH_Patient p, SFH_admission a, SFH_ROOM r 
+			where a.admissionID = p_admissionID 
+            and p.patientID = a.patientID 
+            and a.roomID = r.roomID 
+            and a.endDate is null;
+begin
+	open admissionID;
+	loop
+		fetch admissionID into v_admissionID;
+		exit when admissionID%notfound;
+
+			open dataValue(v_admissionID);
+			loop
+				fetch dataValue into v_roomNumber, v_bedNum, v_name;
+				exit when dataValue%notfound;
+				dbms_output.put_line('Patient Name:'||v_name|| ' Room Number: '||v_roomNumber||' Bed No: '||v_bedNum);
+			end loop;
+			close dataValue;
+	end loop;
+	close admissionID;
+end roomAndPatientWithIllness;

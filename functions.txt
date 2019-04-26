@@ -1,0 +1,61 @@
+/*-------------------------------------------------------------------*/
+/*Function Will return Number of free bed availabel in hospital*/
+
+create or replace function numberOfFreeBed (v_hospitalID NUMBER)
+return NUMBER
+AS
+	v_cont NUMBER(38);
+BEGIN
+       	select sum(bedNum) into v_cont from AVAILABLEACCOMMODATION 
+        where hospitalID = v_hospitalID
+        order by hospitalID;
+	return v_cont;
+exception
+	WHEN OTHERS THEN
+		DBMS_OUTPUT.PUT_LINE('Error:' ||SQLCODE||SQLERRM);
+end numberOfFreeBed;
+
+/*FUNCTION query*/
+
+Declare
+Lv_test Number(5,0);
+Begin
+lv_test := numberofFreeBed(1);
+DBMS_OUTPUT.PUT_LINE(lv_test);
+End;
+
+
+/*-------------------------------------------------------------------*/
+/*Function to see how many times a given patient was admitted*/
+
+CREATE OR REPLACE 
+function numberofTimeAdmitted (p_hospitalId NUMBER, p_patientID NUMBER)
+return NUMBER
+AS
+	v_cont NUMBER(38);
+BEGIN
+       	select count(*) into v_cont from SFH_admission, SFH_ROOM
+        where SFH_ROOM.hospitalId = p_hospitalId 
+        and SFH_admission.patientID = p_patientID
+        and SFH_ROOM.roomID = SFH_admission.roomID;
+	return v_cont;
+
+exception
+	WHEN OTHERS THEN
+		DBMS_OUTPUT.PUT_LINE('Error:' ||SQLCODE||SQLERRM);
+
+end numberofTimeAdmitted;
+
+/*FUNCTION query*/
+
+Declare
+Lv_test Number(5,0);
+Begin
+lv_test := NUMBEROFTIMEADMITTED(1,1);
+DBMS_OUTPUT.PUT_LINE(lv_test);
+End;
+
+
+
+/*-------------------------------------------------------------------*/
+/*Function to see how many times a given patient was admitted*/
