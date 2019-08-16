@@ -4,19 +4,19 @@ Term Project for Database
 Spring Field hospital database is PL/SQL project which can keep the track record for hospital. started from scratch, the project required creating tables, filling them with data, deleting and editing data as required and updating it. Procedures, triggers, functions and views were created to ensure that accessing data and creating a table report becomes easy 
 
 Following are the data tables:
-Room Table
-Patient Table
-Hospital Table
-Disease Table
-Appointment Table
-Duty Table
-Speciality Table
-Admission Table
-Doctor Table
-Files Table
-Result Table
-Administration Table
-Admin Appointment Table
+-Room Table
+-Patient Table
+-Hospital Table
+-Disease Table
+-Appointment Table
+-Duty Table
+-Speciality Table
+-Admission Table
+-Doctor Table
+-Files Table
+-Result Table
+-Administration Table
+-Admin Appointment Table
 Doctor Duty Table
 -------------------------
 Procedures:
